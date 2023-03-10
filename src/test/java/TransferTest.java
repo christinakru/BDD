@@ -11,8 +11,9 @@ public class TransferTest {
     @BeforeEach
     void login() {
         val loginPage = open("http://localhost:9999", LoginPage.class);
-        val verificationPage = loginPage.login(Generator.getCorrectLogin(), Generator.getCorrectPassword());
-        verificationPage.validVerify(Generator.getCorrectVerCode());
+        Generator.AuthInfo info = Generator.getCorrectAuthInfo();
+        val verificationPage = loginPage.login(info.getLogin(), info.getPassword());
+        verificationPage.validVerify(Generator.getVerificationCode().getCode());
     }
 
     @Test
@@ -20,15 +21,17 @@ public class TransferTest {
     void transferFromSndToFstCard() {
         val dashboardPage = new DashboardPage();
         val amount = 1000;
-        val balanceOfFirstCard = dashboardPage.getCardBalance(Generator.getFstCardId());
-        val balanceOfSecondCard = dashboardPage.getCardBalance(Generator.getSndCardId());
+        Generator.CardInfo fstCard = Generator.getFstCard();
+        Generator.CardInfo sndCard = Generator.getSndCard();
+        val balanceOfFirstCard = dashboardPage.getCardBalance(fstCard.getId());
+        val balanceOfSecondCard = dashboardPage.getCardBalance(sndCard.getId());
 
-        val transferPage = dashboardPage.transferToCard(Generator.getFstCardId());
-        val sndCardNumber = Generator.getSndCardNumber();
+        val transferPage = dashboardPage.transferToCard(fstCard.getId());
+        val sndCardNumber = sndCard.getNumber();
         transferPage.transfer(sndCardNumber, amount);
 
-        val newBalanceOfFirstCard = dashboardPage.getCardBalance(Generator.getFstCardId());
-        val newBalanceOfSecondCard = dashboardPage.getCardBalance(Generator.getSndCardId());
+        val newBalanceOfFirstCard = dashboardPage.getCardBalance(fstCard.getId());
+        val newBalanceOfSecondCard = dashboardPage.getCardBalance(sndCard.getId());
 
         assertEquals(balanceOfFirstCard + amount, newBalanceOfFirstCard);
         assertEquals(balanceOfSecondCard - amount, newBalanceOfSecondCard);
@@ -39,15 +42,17 @@ public class TransferTest {
     void transferFromFstToSndCard() {
         val dashboardPage = new DashboardPage();
         val amount = 1000;
-        val balanceOfFirstCard = dashboardPage.getCardBalance(Generator.getFstCardId());
-        val balanceOfSecondCard = dashboardPage.getCardBalance(Generator.getSndCardId());
+        Generator.CardInfo fstCard = Generator.getFstCard();
+        Generator.CardInfo sndCard = Generator.getSndCard();
+        val balanceOfFirstCard = dashboardPage.getCardBalance(fstCard.getId());
+        val balanceOfSecondCard = dashboardPage.getCardBalance(sndCard.getId());
 
-        val transferPage = dashboardPage.transferToCard(Generator.getSndCardId());
-        val fstCardNumber = Generator.getFstCardNumber();
+        val transferPage = dashboardPage.transferToCard(sndCard.getId());
+        val fstCardNumber = fstCard.getNumber();
         transferPage.transfer(fstCardNumber, amount);
 
-        val newBalanceOfFirstCard = dashboardPage.getCardBalance(Generator.getFstCardId());
-        val newBalanceOfSecondCard = dashboardPage.getCardBalance(Generator.getSndCardId());
+        val newBalanceOfFirstCard = dashboardPage.getCardBalance(fstCard.getId());
+        val newBalanceOfSecondCard = dashboardPage.getCardBalance(sndCard.getId());
 
         assertEquals(balanceOfFirstCard - amount, newBalanceOfFirstCard);
         assertEquals(balanceOfSecondCard + amount, newBalanceOfSecondCard);
@@ -58,9 +63,9 @@ public class TransferTest {
     void transferFromIncorrectToSndCard() {
         val dashboardPage = new DashboardPage();
         val amount = 1000;
-
-        val transferPage = dashboardPage.transferToCard(Generator.getSndCardId());
-        val incorrectCardNumber = Generator.getIncorrectCardNumber();
+        Generator.CardInfo sndCard = Generator.getSndCard();
+        val transferPage = dashboardPage.transferToCard(sndCard.getId());
+        val incorrectCardNumber = Generator.getFakeCard().getNumber();
         transferPage.transfer(incorrectCardNumber, amount);
         transferPage.invalidTransfer();
     }
@@ -70,8 +75,8 @@ public class TransferTest {
     void transferFromEmptyToSndCard() {
         val dashboardPage = new DashboardPage();
         val amount = 1000;
-
-        val transferPage = dashboardPage.transferToCard(Generator.getSndCardId());
+        Generator.CardInfo sndCard = Generator.getSndCard();
+        val transferPage = dashboardPage.transferToCard(sndCard.getId());
         val incorrectCardNumber = "";
         transferPage.transfer(incorrectCardNumber, amount);
         transferPage.invalidTransfer();
@@ -82,9 +87,10 @@ public class TransferTest {
     void transferFromFstToSndCardTooMuch() {
         val dashboardPage = new DashboardPage();
         val amount = 20000;
-
-        val transferPage = dashboardPage.transferToCard(Generator.getSndCardId());
-        val fstCardNumber = Generator.getFstCardNumber();
+        Generator.CardInfo fstCard = Generator.getFstCard();
+        Generator.CardInfo sndCard = Generator.getSndCard();
+        val transferPage = dashboardPage.transferToCard(sndCard.getId());
+        val fstCardNumber = fstCard.getNumber();
         transferPage.transfer(fstCardNumber, amount);
         transferPage.invalidTransfer();
     }
@@ -94,9 +100,10 @@ public class TransferTest {
     void transferZeroFromFstToSndCard() {
         val dashboardPage = new DashboardPage();
         val amount = 0;
-
-        val transferPage = dashboardPage.transferToCard(Generator.getSndCardId());
-        val fstCardNumber = Generator.getFstCardNumber();
+        Generator.CardInfo fstCard = Generator.getFstCard();
+        Generator.CardInfo sndCard = Generator.getSndCard();
+        val transferPage = dashboardPage.transferToCard(sndCard.getId());
+        val fstCardNumber = fstCard.getNumber();
         transferPage.transfer(fstCardNumber, amount);
         transferPage.invalidTransfer();
     }
